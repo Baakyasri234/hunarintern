@@ -1,52 +1,128 @@
+import java.util.ArrayList;
 import java.util.Scanner;
+
 public class ATMSimulator {
+    private static int balance = 1000;
+    private static final int PIN = 1234;
+    private static final ArrayList<String> history = new ArrayList<>();
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        int balance = 1000; // Initial balance
-        System.out.println("Welcome to the Simple ATM!");
-        while (true) {
-            System.out.println("\nATM Menu:");
-            System.out.println("1. Check Balance");
-            System.out.println("2. Deposit");
-            System.out.println("3. Withdraw");
-            System.out.println("4. Exit");
-            System.out.print("Enter your choice: ");
 
-            int choice = scanner.nextInt();
+        System.out.println("Welcome to the Secure ATM!");
+
+        if (!login(scanner)) {
+            System.out.println("Too many failed attempts. Card blocked.");
+            scanner.close();
+            return;
+        }
+
+        while (true) {
+            showMenu();
+            int choice = readInt(scanner, "Enter your choice: ");
 
             switch (choice) {
                 case 1:
-                    System.out.println("Your current balance is: $" + balance);
+                    checkBalance();
                     break;
                 case 2:
-                    System.out.print("Enter amount to deposit: $");
-                    int depositAmount = scanner.nextInt();
-                    if (depositAmount > 0) {
-                        balance += depositAmount;
-                        System.out.println("Deposit successful. New balance: $" + balance);
-                    } else {
-                        System.out.println("Invalid deposit amount.");
-                    }
+                    deposit(scanner);
                     break;
                 case 3:
-                    System.out.print("Enter amount to withdraw: $");
-                    int withdrawAmount = scanner.nextInt();
-                    if (withdrawAmount > 0 && withdrawAmount <= balance) {
-                        balance -= withdrawAmount;
-                        System.out.println("Withdrawal successful. New balance: $" + balance);
-                    } else if (withdrawAmount > balance) {
-                        System.out.println("Insufficient balance.");
-                    } else {
-                        System.out.println("Invalid withdrawal amount.");
-                    }
+                    withdraw(scanner);
                     break;
                 case 4:
+                    showHistory();
+                    break;
+                case 5:
                     System.out.println("Thank you for using the ATM. Goodbye!");
                     scanner.close();
-                    System.exit(0);
-                    break;
+                    return;
                 default:
                     System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static boolean login(Scanner scanner) {
+        int attempts = 3;
+
+        while (attempts > 0) {
+            int enteredPin = readInt(scanner, "Enter PIN: ");
+
+            if (enteredPin == PIN) {
+                System.out.println("Login successful!");
+                return true;
+            }
+
+            attempts--;
+            System.out.println("Incorrect PIN. Attempts left: " + attempts);
+        }
+
+        return false;
+    }
+
+    private static void showMenu() {
+        System.out.println("\nATM Menu:");
+        System.out.println("1. Check Balance");
+        System.out.println("2. Deposit");
+        System.out.println("3. Withdraw");
+        System.out.println("4. Transaction History");
+        System.out.println("5. Exit");
+    }
+
+    private static void checkBalance() {
+        System.out.println("Your current balance is: $" + balance);
+        history.add("Checked balance: $" + balance);
+    }
+
+    private static void deposit(Scanner scanner) {
+        int amount = readInt(scanner, "Enter amount to deposit: $");
+
+        if (amount > 0) {
+            balance += amount;
+            System.out.println("Deposit successful. New balance: $" + balance);
+            history.add("Deposited: $" + amount);
+        } else {
+            System.out.println("Invalid deposit amount.");
+        }
+    }
+
+    private static void withdraw(Scanner scanner) {
+        int amount = readInt(scanner, "Enter amount to withdraw: $");
+
+        if (amount <= 0) {
+            System.out.println("Invalid withdrawal amount.");
+        } else if (amount > balance) {
+            System.out.println("Insufficient balance.");
+        } else {
+            balance -= amount;
+            System.out.println("Withdrawal successful. New balance: $" + balance);
+            history.add("Withdrawn: $" + amount);
+        }
+    }
+
+    private static void showHistory() {
+        System.out.println("\nTransaction History:");
+
+        if (history.isEmpty()) {
+            System.out.println("No transactions yet.");
+        } else {
+            for (String record : history) {
+                System.out.println("- " + record);
+            }
+        }
+    }
+
+    private static int readInt(Scanner scanner, String message) {
+        while (true) {
+            System.out.print(message);
+
+            if (scanner.hasNextInt()) {
+                return scanner.nextInt();
+            } else {
+                System.out.println("Invalid input. Please enter a number.");
+                scanner.next();
             }
         }
     }
